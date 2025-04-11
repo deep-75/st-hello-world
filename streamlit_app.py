@@ -1,38 +1,37 @@
 import streamlit as st
 import pandas as pd
-import pickle
 
-# Load the trained model
-with open("delivery_model.pkl", "rb") as f:
-    model = pickle.load(f)
-
-# Load any encoders or transformers if necessary
-with open("encoder.pkl", "rb") as f:
-    encoder = pickle.load(f)
-
-# Streamlit UI
 st.title("Timelytics: Delivery Time Predictor")
 
-st.markdown("Fill in the order details below to get a predicted delivery time:")
+st.markdown("Provide order details below to get an estimated delivery time:")
 
 # User Inputs
 product_category = st.selectbox("Product Category", ['Electronics', 'Clothing', 'Home & Kitchen', 'Books', 'Beauty'])
 customer_location = st.selectbox("Customer Location", ['New York', 'California', 'Texas', 'Florida', 'Illinois'])
 shipping_method = st.selectbox("Shipping Method", ['Standard', 'Express', 'Same Day'])
 
+def predict_delivery_time(category, location, shipping):
+    # Dummy rule-based prediction logic
+    base_time = {
+        'Standard': 5,
+        'Express': 3,
+        'Same Day': 1
+    }.get(shipping, 5)
+    
+    # Adjust based on category
+    if category in ['Electronics', 'Home & Kitchen']:
+        base_time += 1
+    elif category == 'Books':
+        base_time -= 1
+
+    # Adjust based on location (mock logic)
+    if location in ['California', 'Texas']:
+        base_time += 0.5
+    elif location == 'New York':
+        base_time -= 0.5
+
+    return max(1, round(base_time, 1))
+
 if st.button("Predict Delivery Time"):
-    # Create DataFrame from input
-    input_df = pd.DataFrame({
-        'Product_Category': [product_category],
-        'Customer_Location': [customer_location],
-        'Shipping_Method': [shipping_method]
-    })
-
-    # Encode inputs if needed
-    input_encoded = encoder.transform(input_df)
-
-    # Make prediction
-    prediction = model.predict(input_encoded)[0]
-
-    # Display result
-    st.success(f"📦 Estimated Delivery Time: **{prediction:.2f} days**")
+    prediction = predict_delivery_time(product_category, customer_location, shipping_method)
+    st.success(f"📦 Estimated Delivery Time: **{prediction} days**")
